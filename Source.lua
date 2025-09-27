@@ -1,15 +1,15 @@
 local Lib = {}
 
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
 function Lib:MakeWindow(Info)
     Info = Info or {}
 
-    local Players = game:GetService("Players")
-    local TweenService = game:GetService("TweenService")
-    local UIS = game:GetService("UserInputService")
-    local LocalPlayer = Players.LocalPlayer
-    local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
-
-    -- Remove antiga GUI da lib
+    -- Remove antiga GUI
     local oldGui = PlayerGui:FindFirstChild("ModernUILibrary")
     if oldGui then oldGui:Destroy() end
 
@@ -19,11 +19,11 @@ function Lib:MakeWindow(Info)
     ScreenGui.IgnoreGuiInset = true
     ScreenGui.Parent = PlayerGui
 
-    -- Main window
+    -- Main frame
     local MainFrame = Instance.new("Frame")
     MainFrame.Size = UDim2.new(0, 470, 0, 350)
-    MainFrame.AnchorPoint = Vector2.new(0.5, 0)
     MainFrame.Position = UDim2.new(0.5, 0, 0.3, 0)
+    MainFrame.AnchorPoint = Vector2.new(0.5, 0)
     MainFrame.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
     MainFrame.BorderSizePixel = 0
     MainFrame.Parent = ScreenGui
@@ -43,7 +43,7 @@ function Lib:MakeWindow(Info)
     TitleCorner.CornerRadius = UDim.new(0, 12)
     TitleCorner.Parent = TitleBar
 
-    -- Title
+    -- Title Label
     local TitleLabel = Instance.new("TextLabel")
     TitleLabel.Size = UDim2.new(1, -90, 0, 22)
     TitleLabel.Position = UDim2.new(0, 10, 0, 4)
@@ -53,7 +53,7 @@ function Lib:MakeWindow(Info)
     TitleLabel.TextSize = 20
     TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-    TitleLabel.Parent = MainFrame  -- Fixo
+    TitleLabel.Parent = MainFrame
 
     -- SubTitle
     local SubTitleLabel = Instance.new("TextLabel")
@@ -67,7 +67,7 @@ function Lib:MakeWindow(Info)
     SubTitleLabel.TextXAlignment = Enum.TextXAlignment.Left
     SubTitleLabel.Parent = MainFrame
 
-    -- Content
+    -- Content Frame
     local Content = Instance.new("Frame")
     Content.Size = UDim2.new(1, 0, 1, -45)
     Content.Position = UDim2.new(0, 0, 0, 45)
@@ -104,7 +104,7 @@ function Lib:MakeWindow(Info)
     CloseCorner.CornerRadius = UDim.new(0, 6)
     CloseCorner.Parent = CloseButton
 
-    -- Minimizar função
+    -- Minimize logic
     local minimized = false
     local function ToggleMinimize()
         minimized = not minimized
@@ -117,7 +117,7 @@ function Lib:MakeWindow(Info)
     end
     MinButton.MouseButton1Click:Connect(ToggleMinimize)
 
-    -- Drag
+    -- Drag logic
     local dragging, dragInput, dragStart, startPos
     local function update(input)
         local delta = input.Position - dragStart
@@ -152,105 +152,190 @@ function Lib:MakeWindow(Info)
         end
     end)
 
-    -- Função de criar diálogo
-    local function CreateDialog()
-        local Dialog = Instance.new("Frame")
-        Dialog.Size = UDim2.new(0, 300, 0, 150)
-        Dialog.Position = UDim2.new(0.5, -150, 0.5, -75)
-        Dialog.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-        Dialog.BorderSizePixel = 0
-        Dialog.AnchorPoint = Vector2.new(0.5, 0.5)
-        Dialog.Parent = ScreenGui
+    -- Notification ao carregar
+    local function Notify(Text)
+        local NotifyFrame = Instance.new("Frame")
+        NotifyFrame.Size = UDim2.new(0, 200, 0, 50)
+        NotifyFrame.Position = UDim2.new(0.5, -100, 0, 20)
+        NotifyFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+        NotifyFrame.BorderSizePixel = 0
+        NotifyFrame.Parent = ScreenGui
 
-        local DialogCorner = Instance.new("UICorner")
-        DialogCorner.CornerRadius = UDim.new(0, 12)
-        DialogCorner.Parent = Dialog
+        local Corner = Instance.new("UICorner")
+        Corner.CornerRadius = UDim.new(0, 8)
+        Corner.Parent = NotifyFrame
 
-        local DialogTitle = Instance.new("TextLabel")
-        DialogTitle.Size = UDim2.new(1, -20, 0, 30)
-        DialogTitle.Position = UDim2.new(0, 10, 0, 10)
-        DialogTitle.BackgroundTransparency = 1
-        DialogTitle.Text = (Info.Title or "Window") .. " Info"
-        DialogTitle.Font = Enum.Font.GothamBold
-        DialogTitle.TextSize = 18
-        DialogTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-        DialogTitle.Parent = Dialog
+        local Label = Instance.new("TextLabel")
+        Label.Size = UDim2.new(1, -10, 1, -10)
+        Label.Position = UDim2.new(0, 5, 0, 5)
+        Label.BackgroundTransparency = 1
+        Label.Text = Text
+        Label.TextColor3 = Color3.fromRGB(255, 255, 255)
+        Label.Font = Enum.Font.Gotham
+        Label.TextSize = 14
+        Label.Parent = NotifyFrame
 
-        local DialogSub = Instance.new("TextLabel")
-        DialogSub.Size = UDim2.new(1, -20, 0, 40)
-        DialogSub.Position = UDim2.new(0, 10, 0, 50)
-        DialogSub.BackgroundTransparency = 1
-        DialogSub.Text = "Are you sure you want to close the window?"
-        DialogSub.Font = Enum.Font.Gotham
-        DialogSub.TextSize = 14
-        DialogSub.TextColor3 = Color3.fromRGB(200, 200, 200)
-        DialogSub.TextWrapped = true
-        DialogSub.Parent = Dialog
-
-        local Confirm = Instance.new("TextButton")
-        Confirm.Size = UDim2.new(0.4, 0, 0, 30)
-        Confirm.Position = UDim2.new(0.05, 0, 1, -40)
-        Confirm.BackgroundColor3 = Color3.fromRGB(50, 150, 50)
-        Confirm.Text = "Confirm"
-        Confirm.TextColor3 = Color3.fromRGB(255, 255, 255)
-        Confirm.Font = Enum.Font.GothamBold
-        Confirm.TextSize = 14
-        Confirm.Parent = Dialog
-
-        local Cancel = Instance.new("TextButton")
-        Cancel.Size = UDim2.new(0.4, 0, 0, 30)
-        Cancel.Position = UDim2.new(0.55, 0, 1, -40)
-        Cancel.BackgroundColor3 = Color3.fromRGB(150, 50, 50)
-        Cancel.Text = "Cancel"
-        Cancel.TextColor3 = Color3.fromRGB(255, 255, 255)
-        Cancel.Font = Enum.Font.GothamBold
-        Cancel.TextSize = 14
-        Cancel.Parent = Dialog
-
-        Confirm.MouseButton1Click:Connect(function()
-            if not minimized then ToggleMinimize() end
-            task.delay(0.3, function()
-                local goal = {Size = UDim2.new(0, 0, 0, TitleBar.Size.Y.Offset)}
-                TweenService:Create(TitleBar, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), goal):Play()
-                task.delay(0.4, function()
-                    ScreenGui:Destroy()
-                end)
-            end)
-        end)
-
-        Cancel.MouseButton1Click:Connect(function()
-            Dialog:Destroy()
+        task.delay(2, function()
+            NotifyFrame:Destroy()
         end)
     end
+    Notify("Window Loaded")
 
-    CloseButton.MouseButton1Click:Connect(CreateDialog)
+    -- Tabs
+    MainFrame.TabsContainer = Instance.new("Frame")
+    MainFrame.TabsContainer.Size = UDim2.new(1, 0, 0, 35)
+    MainFrame.TabsContainer.Position = UDim2.new(0, 0, 0, 45)
+    MainFrame.TabsContainer.BackgroundTransparency = 1
+    MainFrame.TabsContainer.Parent = MainFrame
 
-    -- Notify
-    local Notify = Instance.new("TextLabel")
-    Notify.Size = UDim2.new(0, 200, 0, 50)
-    Notify.Position = UDim2.new(0.5, -100, 0.2, 0)
-    Notify.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-    Notify.BorderSizePixel = 0
-    Notify.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Notify.Font = Enum.Font.GothamBold
-    Notify.TextSize = 16
-    Notify.Text = "UI Library Carregada"
-    Notify.AnchorPoint = Vector2.new(0.5, 0.5)
-    Notify.Parent = ScreenGui
+    MainFrame.TabsScroll = Instance.new("ScrollingFrame")
+    MainFrame.TabsScroll.Size = UDim2.new(1, 0, 1, 0)
+    MainFrame.TabsScroll.BackgroundTransparency = 1
+    MainFrame.TabsScroll.BorderSizePixel = 0
+    MainFrame.TabsScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+    MainFrame.TabsScroll.ScrollBarThickness = 0
+    MainFrame.TabsScroll.Parent = MainFrame.TabsContainer
 
-    local NotifyCorner = Instance.new("UICorner")
-    NotifyCorner.CornerRadius = UDim.new(0, 10)
-    NotifyCorner.Parent = Notify
+    -- Função para criar Tab
+    function MainFrame:Tab(Info)
+        Info = Info or {}
+        local TabName = Info.Name or "Tab"
 
-    task.delay(1.5, function() Notify:Destroy() end)
+        local TabButton = Instance.new("TextButton")
+        TabButton.Size = UDim2.new(0, 120, 0, 30)
+        TabButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        TabButton.Text = TabName
+        TabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        TabButton.TextSize = 14
+        TabButton.Font = Enum.Font.GothamBold
+        TabButton.Parent = self.TabsScroll
 
-    return {
-        MainFrame = MainFrame,
-        TitleBar = TitleBar,
-        Content = Content,
-        MinButton = MinButton,
-        CloseButton = CloseButton
-    }
+        local Corner = Instance.new("UICorner")
+        Corner.CornerRadius = UDim.new(0, 6)
+        Corner.Parent = TabButton
+
+        local TabContent = Instance.new("Frame")
+        TabContent.Size = UDim2.new(1, 0, 1, -35)
+        TabContent.Position = UDim2.new(0, 0, 0, 35)
+        TabContent.BackgroundTransparency = 1
+        TabContent.Visible = false
+        TabContent.Parent = self
+
+        TabButton.MouseButton1Click:Connect(function()
+            for _, frame in pairs(self:GetChildren()) do
+                if frame:IsA("Frame") and frame ~= TitleBar and frame ~= self.TabsContainer then
+                    frame.Visible = false
+                end
+            end
+            TabContent.Visible = true
+        end)
+
+        return {
+            Button = TabButton,
+            Content = TabContent,
+            Name = TabName
+        }
+    end
+
+    -- Função Dialog
+    function MainFrame:Dialog(Info)
+        Info = Info or {}
+        local Options = Info.Options or {}
+
+        local DialogFrame = Instance.new("Frame")
+        DialogFrame.Size = UDim2.new(0, 350, 0, 180)
+        DialogFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+        DialogFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+        DialogFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+        DialogFrame.BorderSizePixel = 0
+        DialogFrame.Parent = ScreenGui
+        DialogFrame.Visible = false
+
+        local UICorner = Instance.new("UICorner")
+        UICorner.CornerRadius = UDim.new(0, 12)
+        UICorner.Parent = DialogFrame
+
+        local TitleLabel = Instance.new("TextLabel")
+        TitleLabel.Size = UDim2.new(1, -20, 0, 30)
+        TitleLabel.Position = UDim2.new(0, 10, 0, 10)
+        TitleLabel.BackgroundTransparency = 1
+        TitleLabel.Font = Enum.Font.GothamBold
+        TitleLabel.TextSize = 18
+        TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+        TitleLabel.Text = Info.Title or "Dialog"
+        TitleLabel.Parent = DialogFrame
+
+        local SubTitleLabel = Instance.new("TextLabel")
+        SubTitleLabel.Size = UDim2.new(1, -20, 0, 40)
+        SubTitleLabel.Position = UDim2.new(0, 10, 0, 40)
+        SubTitleLabel.BackgroundTransparency = 1
+        SubTitleLabel.Font = Enum.Font.Gotham
+        SubTitleLabel.TextSize = 14
+        SubTitleLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+        SubTitleLabel.TextWrapped = true
+        SubTitleLabel.Text = Info.SubTitle or ""
+        SubTitleLabel.Parent = DialogFrame
+
+        local ButtonY = 90
+        for _, opt in pairs(Options) do
+            local Btn = Instance.new("TextButton")
+            Btn.Size = UDim2.new(0.8, 0, 0, 30)
+            Btn.Position = UDim2.new(0.1, 0, 0, ButtonY)
+            Btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+            Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+            Btn.Font = Enum.Font.GothamBold
+            Btn.TextSize = 14
+            Btn.Text = opt.Title or "Option"
+            Btn.Parent = DialogFrame
+
+            local BtnCorner = Instance.new("UICorner")
+            BtnCorner.CornerRadius = UDim.new(0, 6)
+            BtnCorner.Parent = Btn
+
+            Btn.MouseButton1Click:Connect(function()
+                if opt.Callback then opt.Callback() end
+                DialogFrame.Visible = false
+            end)
+
+            ButtonY = ButtonY + 40
+        end
+
+        local DialogObj = {}
+        function DialogObj:Show()
+            DialogFrame.Visible = true
+            DialogFrame.Position = UDim2.new(0.5, 0, 0.5, -20)
+            DialogFrame.Size = UDim2.new(0, 0, 0, 0)
+            TweenService:Create(DialogFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                Size = UDim2.new(0, 350, 0, 180),
+                Position = UDim2.new(0.5, 0, 0.5, 0)
+            }):Play()
+        end
+        function DialogObj:Close()
+            TweenService:Create(DialogFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+                Size = UDim2.new(0, 0, 0, 0),
+                Position = UDim2.new(0.5, 0, 0.5, -20)
+            }):Play()
+            task.delay(0.25, function() DialogFrame.Visible = false end)
+        end
+
+        return DialogObj
+    end
+
+    -- Close logic com Dialog
+    CloseButton.MouseButton1Click:Connect(function()
+        local Dialog = MainFrame:Dialog({
+            Title = TitleLabel.Text,
+            SubTitle = "Are you sure you want to close the window?",
+            Options = {
+                Op1 = {Title = "Confirm", Callback = function() MainFrame:Destroy() end},
+                Op2 = {Title = "Cancel", Callback = function() end}
+            }
+        })
+        Dialog:Show()
+    end)
+
+    return MainFrame
 end
 
 return Lib
