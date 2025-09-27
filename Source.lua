@@ -117,18 +117,20 @@ function Lib:MakeWindow(Info)
 
     MinButton.MouseButton1Click:Connect(ToggleMinimize)
 
-    CloseButton.MouseButton1Click:Connect(function()
-        -- Minimiza antes de animar TitleBar
-        if not minimized then ToggleMinimize() end
-        task.delay(0.3, function()
-            -- Anima TitleBar encolhendo da direita para a esquerda
-            local goal = {Size = UDim2.new(0, 0, 0, 45)}
-            TweenService:Create(TitleBar, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), goal):Play()
-            task.delay(0.4, function()
-                ScreenGui:Destroy()
-            end)
+CloseButton.MouseButton1Click:Connect(function()
+    -- Minimiza o conteúdo primeiro
+    if not minimized then ToggleMinimize() end
+    task.delay(0.3, function()
+        -- Apenas TitleBar encolhe da direita para esquerda
+        local initialWidth = TitleBar.Size.X.Offset
+        local goal = {Size = UDim2.new(0, 0, 0, TitleBar.Size.Y.Offset)}
+        TweenService:Create(TitleBar, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), goal):Play()
+        -- Mantem TextLabels e botões fixos no lugar (eles não são filhos da TitleBar)
+        task.delay(0.4, function()
+            ScreenGui:Destroy()
         end)
     end)
+end)
 
     -- Dragging TitleBar
     local dragging, dragInput, dragStart, startPos
