@@ -5,6 +5,7 @@ function Lib:MakeWindow(Info)
 
     local Players = game:GetService("Players")
     local TweenService = game:GetService("TweenService")
+    local UIS = game:GetService("UserInputService")
     local LocalPlayer = Players.LocalPlayer
     local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
@@ -21,8 +22,8 @@ function Lib:MakeWindow(Info)
     -- Main window
     local MainFrame = Instance.new("Frame")
     MainFrame.Size = UDim2.new(0, 470, 0, 350)
-    MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-    MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    MainFrame.AnchorPoint = Vector2.new(0.5, 0)
+    MainFrame.Position = UDim2.new(0.5, 0, 0.3, 0)
     MainFrame.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
     MainFrame.BorderSizePixel = 0
     MainFrame.Parent = ScreenGui
@@ -44,7 +45,7 @@ function Lib:MakeWindow(Info)
 
     -- Title
     local TitleLabel = Instance.new("TextLabel")
-    TitleLabel.Size = UDim2.new(1, -50, 0, 22)
+    TitleLabel.Size = UDim2.new(1, -90, 0, 22)
     TitleLabel.Position = UDim2.new(0, 10, 0, 4)
     TitleLabel.BackgroundTransparency = 1
     TitleLabel.Text = Info.Title or "Window Title!"
@@ -56,7 +57,7 @@ function Lib:MakeWindow(Info)
 
     -- SubTitle
     local SubTitleLabel = Instance.new("TextLabel")
-    SubTitleLabel.Size = UDim2.new(1, -50, 0, 18)
+    SubTitleLabel.Size = UDim2.new(1, -90, 0, 18)
     SubTitleLabel.Position = UDim2.new(0, 10, 0, 23)
     SubTitleLabel.BackgroundTransparency = 1
     SubTitleLabel.Text = Info.SubTitle or "Hello!"
@@ -76,7 +77,7 @@ function Lib:MakeWindow(Info)
     -- Minimize button
     local MinButton = Instance.new("TextButton")
     MinButton.Size = UDim2.new(0, 30, 0, 30)
-    MinButton.Position = UDim2.new(1, -35, 0.5, -15)
+    MinButton.Position = UDim2.new(1, -70, 0.5, -15)
     MinButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     MinButton.Text = "–"
     MinButton.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -88,42 +89,59 @@ function Lib:MakeWindow(Info)
     BtnCorner.CornerRadius = UDim.new(0, 6)
     BtnCorner.Parent = MinButton
 
+    -- Close button
+    local CloseButton = Instance.new("TextButton")
+    CloseButton.Size = UDim2.new(0, 30, 0, 30)
+    CloseButton.Position = UDim2.new(1, -35, 0.5, -15)
+    CloseButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+    CloseButton.Text = "X"
+    CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CloseButton.TextSize = 18
+    CloseButton.Font = Enum.Font.GothamBold
+    CloseButton.Parent = TitleBar
+
+    local CloseCorner = Instance.new("UICorner")
+    CloseCorner.CornerRadius = UDim.new(0, 6)
+    CloseCorner.Parent = CloseButton
+
     local minimized = false
-    MinButton.MouseButton1Click:Connect(function()
+    local function ToggleMinimize()
         minimized = not minimized
         MinButton.Text = minimized and "+" or "–"
-        -- Rotacionar o texto do botão
-        local rotationGoal = minimized and 90 or 0
-        TweenService:Create(MinButton, TweenInfo.new(0.2), {Rotation = rotationGoal}):Play()
-        if minimized then
-            TweenService:Create(MainFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                Size = UDim2.new(0, 470, 0, 45)
-            }):Play()
-            Content.Visible = false
-        else
-            TweenService:Create(MainFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                Size = UDim2.new(0, 470, 0, 350)
-            }):Play()
-            task.delay(0.25, function()
-                Content.Visible = true
+        local newSize = minimized and UDim2.new(0, 470, 0, 45) or UDim2.new(0, 470, 0, 350)
+        TweenService:Create(MainFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            Size = newSize
+        }):Play()
+        Content.Visible = not minimized
+    end
+
+    MinButton.MouseButton1Click:Connect(ToggleMinimize)
+
+    CloseButton.MouseButton1Click:Connect(function()
+        -- Minimiza antes de animar TitleBar
+        if not minimized then ToggleMinimize() end
+        task.delay(0.3, function()
+            -- Anima TitleBar encolhendo da direita para a esquerda
+            local goal = {Size = UDim2.new(0, 0, 0, 45)}
+            TweenService:Create(TitleBar, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), goal):Play()
+            task.delay(0.4, function()
+                ScreenGui:Destroy()
             end)
-        end
+        end)
     end)
 
-    -- Dragging
+    -- Dragging TitleBar
     local dragging, dragInput, dragStart, startPos
-    local UIS = game:GetService("UserInputService")
-
     local function update(input)
         local delta = input.Position - dragStart
         MainFrame.Position = UDim2.new(
-            startPos.X.Scale, startPos.X.Offset + delta.X,
-            startPos.Y.Scale, startPos.Y.Offset + delta.Y
+            0.5, startPos.X.Offset + delta.X,
+            MainFrame.Position.Y.Scale, startPos.Y.Offset + delta.Y
         )
     end
 
     TitleBar.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
             dragStart = input.Position
             startPos = MainFrame.Position
@@ -136,7 +154,7 @@ function Lib:MakeWindow(Info)
     end)
 
     TitleBar.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
             dragInput = input
         end
     end)
@@ -147,7 +165,7 @@ function Lib:MakeWindow(Info)
         end
     end)
 
-    -- Notify ao abrir
+    -- Notify
     local Notify = Instance.new("TextLabel")
     Notify.Size = UDim2.new(0, 200, 0, 50)
     Notify.Position = UDim2.new(0.5, -100, 0.2, 0)
@@ -156,7 +174,7 @@ function Lib:MakeWindow(Info)
     Notify.TextColor3 = Color3.fromRGB(255, 255, 255)
     Notify.Font = Enum.Font.GothamBold
     Notify.TextSize = 16
-    Notify.Text = "UI Library Carregada"
+    Notify.Text = "UI Library Carregada!"
     Notify.AnchorPoint = Vector2.new(0.5, 0.5)
     Notify.Parent = ScreenGui
 
@@ -174,7 +192,8 @@ function Lib:MakeWindow(Info)
         MainFrame = MainFrame,
         TitleBar = TitleBar,
         Content = Content,
-        MinButton = MinButton
+        MinButton = MinButton,
+        CloseButton = CloseButton
     }
 end
 
